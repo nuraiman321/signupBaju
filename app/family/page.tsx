@@ -375,10 +375,10 @@ export default function PricingPage() {
         <Table aria-label="Example static collection table">
           <TableHeader>
             {/* <TableColumn>NO</TableColumn> */}
-            <TableColumn>NAMA</TableColumn>
-            <TableColumn>SAIZ BAJU</TableColumn>
+            <TableColumn className="text-center">NAMA</TableColumn>
+            <TableColumn >SAIZ BAJU</TableColumn>
             <TableColumn>JENIS CUTTING</TableColumn>
-            <TableColumn>ACTION</TableColumn>
+            <TableColumn className="text-center">ACTION</TableColumn>
           </TableHeader>
           {userBatik.length == 0 ? (
             <TableBody emptyContent={"No rows to display."}>{[]}</TableBody>
@@ -387,9 +387,9 @@ export default function PricingPage() {
               {userBatik.map((usr, idx) => (
                 <TableRow key={usr.id}>
                   {/* <TableCell>{idx + 1}</TableCell> */}
-                  <TableCell>{usr.NAME}</TableCell>
-                  <TableCell>{usr.SHIRT_SIZE?.SIZE}</TableCell>
-                  <TableCell>{usr?.CUTTING?.CUTTING}</TableCell>
+                  <TableCell className="text-center">{usr.NAME}</TableCell>
+                  <TableCell className="text-center">{usr.SHIRT_SIZE?.SIZE}</TableCell>
+                  <TableCell className="text-center">{usr?.CUTTING?.CUTTING}</TableCell>
                   <TableCell className="flex gap-1">
                     <Button
                       isIconOnly
