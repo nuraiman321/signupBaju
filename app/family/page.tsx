@@ -367,7 +367,7 @@ export default function PricingPage() {
 
   return (
     <div className="grid gap-3">
-      <div>
+      <div className="grid gap-2">
         <div>
           Keluarga{" "}
           {familyGroup.length != 0 ? familyGroup[0].FAMILY_NAME : <span />}
