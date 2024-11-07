@@ -1,16 +1,6 @@
 "use client";
-import { title } from "@/components/primitives";
-import { collection, endpoint } from "@/config/API";
-import { Cutting, FamilyGroup, Size, UserBatikDetails } from "@/config/model";
-import { v4 as uuidv4 } from "uuid";
-import {
-  createDirectus,
-  rest,
-  readItems,
-  updateItem,
-  createItem,
-  authentication,
-} from "@directus/sdk";
+import { MdDelete, MdEdit } from "react-icons/md";
+import { createDirectus, rest, readItems, authentication } from "@directus/sdk";
 import { Button } from "@nextui-org/button";
 import {
   Dropdown,
@@ -36,9 +26,10 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/table";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { ReactElement, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
+import { collection, endpoint } from "@/config/API";
+import { Cutting, FamilyGroup, Size, UserBatikDetails } from "@/config/model";
 
 export default function PricingPage() {
   // const client = createDirectus(endpoint.url).with(rest());
@@ -61,7 +52,7 @@ export default function PricingPage() {
     useState<string>("Select size");
 
   const [selectedCutting, setSelectedCutting] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [tableKey, setTableKey] = useState(0);
 
@@ -85,7 +76,7 @@ export default function PricingPage() {
     if (fetchedId) {
       setFamilyId(fetchedId);
       fetchUserBatik(fetchedId);
-      fetchFamily(fetchedId)
+      fetchFamily(fetchedId);
     }
   }, []);
   // const id = params.get("id");
@@ -107,11 +98,10 @@ export default function PricingPage() {
             "id",
             "FAMILY_NAME",
             // "SHIRT_SIZE.SIZE",
-            
           ],
-        })
+        }),
       );
-      console.log(result, "FAMILY");
+
       setFamilyGroup(result as any as FamilyGroup[]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -137,9 +127,9 @@ export default function PricingPage() {
               CUTTING: ["CUTTING"],
             },
           ],
-        })
+        }),
       );
-      console.log(result, "UBS");
+
       setUserBatik(result as any as UserBatikDetails[]);
       setLoading(true);
     } catch (error) {
@@ -156,9 +146,9 @@ export default function PricingPage() {
             status: { _eq: "published" },
           },
           fields: ["SIZE", "id"],
-        })
+        }),
       );
-      console.log(result, "UB");
+
       setShirtSize(result as any as Size[]);
       setLoading(true);
     } catch (error) {
@@ -175,9 +165,9 @@ export default function PricingPage() {
             status: { _eq: "published" },
           },
           fields: ["CUTTING", "id"],
-        })
+        }),
       );
-      console.log(result, "cutting");
+
       setCuttingStyle(result as any as Cutting[]);
       // setLoading(true);
     } catch (error) {
@@ -192,8 +182,6 @@ export default function PricingPage() {
     CUTTING: string;
   }) => {
     // const { id, title, content, userId } = formData;
-    console.log(formData, "EDIT DATA");
-    console.log(`${endpoint.userBatikEndpoint}/${userId}`, "URL");
     try {
       // Make a POST request to add a new post
       const response = await fetch(`${endpoint.userBatikEndpoint}/${userId}`, {
@@ -209,17 +197,21 @@ export default function PricingPage() {
       // Check if the response is okay
       if (response.ok) {
         const result = await response.json();
+
         closeModal();
         console.log("Success: Post edited", result);
         fetchUserBatik(familyId);
       } else {
         // Handle API errors
         const errorData = await response.json();
+
         console.error("Error adding post:", errorData);
+
         return { error: "Something went wrong!" };
       }
     } catch (err) {
       console.error("Request error:", err);
+
       return { error: "Something went wrong!" };
     }
   };
@@ -248,6 +240,7 @@ export default function PricingPage() {
       // Check if the response is okay
       if (response.ok) {
         const result = await response.json();
+
         closeModal();
         console.log("Success: Post added", result);
         true;
@@ -256,11 +249,52 @@ export default function PricingPage() {
       } else {
         // Handle API errors
         const errorData = await response.json();
+
         console.error("Error adding post:", errorData);
+
         return { error: "Something went wrong!" };
       }
     } catch (err) {
       console.error("Request error:", err);
+
+      return { error: "Something went wrong!" };
+    }
+  };
+
+  const deleteData = async (id: any) => {
+    // const { NAME, SIZE, FAMILY_NAME } = Object.fromEntries(formData);
+
+    try {
+      // Make a POST request to add a new post
+      const response = await fetch(`${endpoint.userBatikEndpoint}/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Connection: "keep-alive", // Set the content type to JSON
+          // 'Authorization': `Bearer ${token}`, // Pass the token for authorization
+        },
+        // body:"{",
+      });
+
+      // Check if the response is okay
+      if (response.ok) {
+        const result = await response;
+
+        console.log("Success: delete data", result);
+        true;
+        fetchUserBatik(familyId);
+        // refreshTable();
+      } else {
+        // Handle API errors
+        const errorData = await response.json();
+
+        console.error("Error adding post:", errorData);
+
+        return { error: "Something went wrong!" };
+      }
+    } catch (err) {
+      console.error("Request error:", err);
+
       return { error: "Something went wrong!" };
     }
   };
@@ -268,7 +302,7 @@ export default function PricingPage() {
   const handleUpdateBtn = () => {
     let filterSize = shirtSize.filter((size) => size.SIZE == selectedValueSize);
     let filterCutting = cuttingStyle.filter(
-      (cut) => cut.CUTTING == selectedValueCutting
+      (cut) => cut.CUTTING == selectedValueCutting,
     );
     let sizeId = filterSize[0].id;
     let cuttingId = filterCutting[0].id;
@@ -289,11 +323,14 @@ export default function PricingPage() {
       FAMILY_NAME: familyId,
       CUTTING: Array.from(selectedCutting)[0],
     };
-    addPost(newData);
-    // console.log(newData, "DATA TO ADD")
 
-    // addPost()
+    addPost(newData);
   };
+
+  const handleDeleteBtn = (id: any) => {
+    console.log(id, "ELETE ID");
+    deleteData(id);
+  }
 
   const handleUpdateOrAdd = (action: String, data: UserBatikDetails | null) => {
     if (action == "add") {
@@ -301,15 +338,16 @@ export default function PricingPage() {
       setNameValue("");
       setSelectedValueSize("Select Size");
       setSelectedValueCutting("Select Cutting");
+      closeModal()
     } else {
       //if edit
       setIsEdit(true);
-      console.log(data, "data using");
       if (data != null) {
         setNameValue(data.NAME);
         setSelectedValueSize(data.SHIRT_SIZE.SIZE);
         setSelectedValueCutting(data.CUTTING.CUTTING);
         setUserId(data.id);
+        closeModal();
       }
     }
   };
@@ -330,8 +368,11 @@ export default function PricingPage() {
   return (
     <div className="grid gap-3">
       <div>
-        <div>Keluarga {familyGroup.length != 0? (familyGroup[0].FAMILY_NAME) :(<span></span>) }</div>
-        <Table key={tableKey} aria-label="Example static collection table">
+        <div>
+          Keluarga{" "}
+          {familyGroup.length != 0 ? familyGroup[0].FAMILY_NAME : <span />}
+        </div>
+        <Table aria-label="Example static collection table">
           <TableHeader>
             <TableColumn>NO</TableColumn>
             <TableColumn>NAMA</TableColumn>
@@ -349,13 +390,23 @@ export default function PricingPage() {
                   <TableCell>{usr.NAME}</TableCell>
                   <TableCell>{usr.SHIRT_SIZE?.SIZE}</TableCell>
                   <TableCell>{usr?.CUTTING?.CUTTING}</TableCell>
-                  <TableCell>
+                  <TableCell className="flex gap-1">
                     <Button
-                      onPress={onOpen}
-                      onClick={() => handleUpdateOrAdd("edit", usr)}
+                      isIconOnly
                       color="primary"
+                      size="md"
+                      onClick={() => handleUpdateOrAdd("edit", usr)}
+                      // onPress={onOpen}
                     >
-                      Edit
+                      <MdEdit />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      color="danger"
+                      size="md"
+                      onClick={() => handleDeleteBtn(usr.id)}
+                    >
+                      <MdDelete />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -366,16 +417,16 @@ export default function PricingPage() {
       </div>
       <div className="text-end">
         <Button
-          onPress={onOpen}
-          onClick={() => handleUpdateOrAdd("add", null)}
           color="primary"
+          onClick={() => handleUpdateOrAdd("add", null)}
+          // onPress={onOpen}
         >
           Tambah
         </Button>
       </div>
 
       {/* ADD DATA MODAL START*/}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center">
+      <Modal isOpen={isOpen} placement="center" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
@@ -389,29 +440,30 @@ export default function PricingPage() {
                   required
                   label="Nama"
                   placeholder="Isi Nama"
-                  variant="bordered"
                   value={nameValue}
+                  variant="bordered"
                   onValueChange={setNameValue}
                 />
 
                 <Dropdown>
                   <DropdownTrigger>
-                    <Button variant="bordered" className="capitalize">
+                    <Button className="capitalize" variant="bordered">
                       {selectedValueSize}
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
-                    aria-label="Single selection example"
-                    variant="flat"
                     disallowEmptySelection
-                    selectionMode="single"
+                    aria-label="Single selection example"
                     selectedKeys={selectedSize}
+                    selectionMode="single"
+                    variant="flat"
                     onSelectionChange={(keys) => {
                       setSelectedSize(new Set(Array.from(keys as Set<string>)));
                       const selectedId = Array.from(keys)[0];
+
                       setSelectedValueSize(
                         shirtSize.find((size) => size.id == selectedId)?.SIZE ||
-                          "Select size"
+                          "Select size",
                       );
                     }}
                   >
@@ -424,24 +476,25 @@ export default function PricingPage() {
                 {/* cutting style DD */}
                 <Dropdown>
                   <DropdownTrigger>
-                    <Button variant="bordered" className="capitalize">
+                    <Button className="capitalize" variant="bordered">
                       {selectedValueCutting}
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
-                    aria-label="Single selection example"
-                    variant="flat"
                     disallowEmptySelection
-                    selectionMode="single"
+                    aria-label="Single selection example"
                     selectedKeys={selectedCutting}
+                    selectionMode="single"
+                    variant="flat"
                     onSelectionChange={(keys) => {
                       setSelectedCutting(
-                        new Set(Array.from(keys as Set<string>))
+                        new Set(Array.from(keys as Set<string>)),
                       );
                       const selectedId = Array.from(keys)[0];
+
                       setSelectedValueCutting(
                         cuttingStyle.find((cut) => cut.id == selectedId)
-                          ?.CUTTING || "Select Cutting"
+                          ?.CUTTING || "Select Cutting",
                       );
                     }}
                   >
@@ -450,7 +503,6 @@ export default function PricingPage() {
                     ))}
                   </DropdownMenu>
                 </Dropdown>
-                
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="flat" onPress={onClose}>
