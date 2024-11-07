@@ -374,7 +374,7 @@ export default function PricingPage() {
         </div>
         <Table aria-label="Example static collection table">
           <TableHeader>
-            <TableColumn>NO</TableColumn>
+            {/* <TableColumn>NO</TableColumn> */}
             <TableColumn>NAMA</TableColumn>
             <TableColumn>SAIZ BAJU</TableColumn>
             <TableColumn>JENIS CUTTING</TableColumn>
@@ -386,7 +386,7 @@ export default function PricingPage() {
             <TableBody>
               {userBatik.map((usr, idx) => (
                 <TableRow key={usr.id}>
-                  <TableCell>{idx + 1}</TableCell>
+                  {/* <TableCell>{idx + 1}</TableCell> */}
                   <TableCell>{usr.NAME}</TableCell>
                   <TableCell>{usr.SHIRT_SIZE?.SIZE}</TableCell>
                   <TableCell>{usr?.CUTTING?.CUTTING}</TableCell>
