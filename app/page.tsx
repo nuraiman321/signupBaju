@@ -102,7 +102,7 @@ export default function Home() {
               subtitle="tekan sini"
               title="Kesang Side"
             >
-              <div className="grid gap-1">
+              <div className="grid gap-2">
                 {kesangGroup.map((kesg) => (
                   <Button
                     key={kesg.id}
@@ -110,7 +110,7 @@ export default function Home() {
                     as={Link}
                     color="primary"
                     href={`/family?id=${kesg.id}`}
-                    size="sm"
+                    size="md"
                     variant="solid"
                   >
                     {kesg.FAMILY_NAME}
@@ -124,7 +124,7 @@ export default function Home() {
               subtitle={<span>tekan sini</span>}
               title="Kemendor side"
             >
-              <div className="grid gap-1">
+              <div className="grid gap-2">
                 {kemendorGroup.map((kmn) => (
                   <Button
                     key={kmn.id}
@@ -132,7 +132,7 @@ export default function Home() {
                     as={Link}
                     color="primary"
                     href={`/family?id=${kmn.id}`}
-                    size="sm"
+                    size="md"
                     variant="solid"
                   >
                     {kmn.FAMILY_NAME}
