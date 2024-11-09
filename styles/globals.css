@@ -6,3 +6,8 @@
 .acord{
     width: 100%;
 }
+
+.error-message-small{
+    font-size: 12px;
+    color: red;
+}

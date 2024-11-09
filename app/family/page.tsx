@@ -40,6 +40,7 @@ export default function PricingPage() {
   const [userBatik, setUserBatik] = useState<UserBatikDetails[]>([]);
   const [familyGroup, setFamilyGroup] = useState<FamilyGroup[]>([]);
   const [shirtSize, setShirtSize] = useState<Size[]>([]);
+  const [fetchShirtSize, setFetchShirtSize] = useState<Size[]>([]);
   const [cuttingStyle, setCuttingStyle] = useState<Cutting[]>([]);
   const [loading, setLoading] = useState<Boolean>(false);
   const [familyName, setFamilyName] = useState<String>("");
@@ -47,12 +48,16 @@ export default function PricingPage() {
   const [nameValue, setNameValue] = useState("");
   // const [selectedKeys, setSelectedKeys] = useState(new Set(["Pilih Size"]));
   const [isEdit, setIsEdit] = useState<Boolean>(false);
+  const [isDisableSize, setIsDisableSize] = useState<boolean>(true);
   const [selectedSize, setSelectedSize] = useState<Set<string>>(new Set());
+  const [isInvalidInput, setIsInvalidInput] = useState<boolean>(false);
+  const [isInvaliCutting, setIsInvalidCutting] = useState<boolean>(false);
+  const [isInvalidSize, setIsInvalidSize] = useState<boolean>(false);
   const [selectedValueSize, setSelectedValueSize] =
     useState<string>("Select size");
 
   const [selectedCutting, setSelectedCutting] = useState<Set<string>>(
-    new Set(),
+    new Set()
   );
   const [tableKey, setTableKey] = useState(0);
 
@@ -99,7 +104,7 @@ export default function PricingPage() {
             "FAMILY_NAME",
             // "SHIRT_SIZE.SIZE",
           ],
-        }),
+        })
       );
 
       setFamilyGroup(result as any as FamilyGroup[]);
@@ -127,7 +132,7 @@ export default function PricingPage() {
               CUTTING: ["CUTTING"],
             },
           ],
-        }),
+        })
       );
 
       setUserBatik(result as any as UserBatikDetails[]);
@@ -146,15 +151,41 @@ export default function PricingPage() {
             status: { _eq: "published" },
           },
           fields: ["SIZE", "id"],
-        }),
+        })
       );
 
       setShirtSize(result as any as Size[]);
+      setFetchShirtSize(result as any as Size[]);
       setLoading(true);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
+
+  function filterSzzeBaseOnCutting(sizeId: SharedSelection) {
+    console.log(typeof sizeId.currentKey, "ID");
+    // ID 2 SLIM FIT size ID 3,4,5
+
+    setSelectedSize(new Set());
+
+    // setSelectedValueSize(
+    //   shirtSize.find((size) => size.id == sizeId)?.SIZE ||
+    //     "Select size"
+    // );
+    setSelectedValueSize("Select size");
+
+    const slimFitSize = [3, 4, 5];
+
+    if (sizeId?.currentKey == "2") {
+      let filteredSize = fetchShirtSize.filter((size) =>
+        slimFitSize.includes(Number(size.id))
+      );
+
+      setShirtSize(filteredSize);
+    } else {
+      setShirtSize(fetchShirtSize);
+    }
+  }
 
   //GET CUTTING LIST
   const fetchCutting = async () => {
@@ -165,7 +196,7 @@ export default function PricingPage() {
             status: { _eq: "published" },
           },
           fields: ["CUTTING", "id"],
-        }),
+        })
       );
 
       setCuttingStyle(result as any as Cutting[]);
@@ -302,7 +333,7 @@ export default function PricingPage() {
   const handleUpdateBtn = () => {
     let filterSize = shirtSize.filter((size) => size.SIZE == selectedValueSize);
     let filterCutting = cuttingStyle.filter(
-      (cut) => cut.CUTTING == selectedValueCutting,
+      (cut) => cut.CUTTING == selectedValueCutting
     );
     let sizeId = filterSize[0].id;
     let cuttingId = filterCutting[0].id;
@@ -317,6 +348,23 @@ export default function PricingPage() {
   };
 
   const handleAddBtn = () => {
+    setIsInvalidInput(false);
+    setIsInvalidCutting(false);
+    setIsInvalidSize(false);
+    if (!nameValue) {
+      setIsInvalidInput(true);
+      console.log(selectedCutting.size, "CUTT")
+      return;
+    }
+    if (selectedCutting.size == 0) {
+      setIsInvalidCutting(true);
+      return;
+    }
+    if(selectedSize.size == 0){
+      setIsInvalidSize(true);
+      return;
+    }
+    setIsInvalidInput(false);
     let newData = {
       NAME: nameValue,
       SHIRT_SIZE: Array.from(selectedSize)[0],
@@ -330,7 +378,7 @@ export default function PricingPage() {
   const handleDeleteBtn = (id: any) => {
     console.log(id, "ELETE ID");
     deleteData(id);
-  }
+  };
 
   const handleUpdateOrAdd = (action: String, data: UserBatikDetails | null) => {
     if (action == "add") {
@@ -338,7 +386,7 @@ export default function PricingPage() {
       setNameValue("");
       setSelectedValueSize("Select Size");
       setSelectedValueCutting("Select Cutting");
-      closeModal()
+      closeModal();
     } else {
       //if edit
       setIsEdit(true);
@@ -375,8 +423,8 @@ export default function PricingPage() {
           <TableHeader>
             {/* <TableColumn>NO</TableColumn> */}
             <TableColumn className="text-center">NAMA</TableColumn>
-            <TableColumn >SAIZ BAJU</TableColumn>
             <TableColumn>JENIS CUTTING</TableColumn>
+            <TableColumn>SAIZ BAJU</TableColumn>
             <TableColumn className="text-center">ACTION</TableColumn>
           </TableHeader>
           {userBatik.length == 0 ? (
@@ -387,8 +435,12 @@ export default function PricingPage() {
                 <TableRow key={usr.id}>
                   {/* <TableCell>{idx + 1}</TableCell> */}
                   <TableCell className="text-center">{usr.NAME}</TableCell>
-                  <TableCell className="text-center">{usr.SHIRT_SIZE?.SIZE}</TableCell>
-                  <TableCell className="text-center">{usr?.CUTTING?.CUTTING}</TableCell>
+                  <TableCell className="text-center">
+                    {usr?.CUTTING?.CUTTING}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {usr.SHIRT_SIZE?.SIZE}
+                  </TableCell>
                   <TableCell className="flex gap-1">
                     <Button
                       isIconOnly
@@ -442,37 +494,10 @@ export default function PricingPage() {
                   value={nameValue}
                   variant="bordered"
                   onValueChange={setNameValue}
+                  isInvalid={isInvalidInput}
+                  errorMessage={"Jangn lupa is nama"}
                 />
 
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button className="capitalize" variant="bordered">
-                      {selectedValueSize}
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu
-                    disallowEmptySelection
-                    aria-label="Single selection example"
-                    selectedKeys={selectedSize}
-                    selectionMode="single"
-                    variant="flat"
-                    onSelectionChange={(keys) => {
-                      setSelectedSize(new Set(Array.from(keys as Set<string>)));
-                      const selectedId = Array.from(keys)[0];
-
-                      setSelectedValueSize(
-                        shirtSize.find((size) => size.id == selectedId)?.SIZE ||
-                          "Select size",
-                      );
-                    }}
-                  >
-                    {shirtSize.map((size) => (
-                      <DropdownItem key={size.id}>{size.SIZE}</DropdownItem>
-                    ))}
-                  </DropdownMenu>
-                </Dropdown>
-
-                {/* cutting style DD */}
                 <Dropdown>
                   <DropdownTrigger>
                     <Button className="capitalize" variant="bordered">
@@ -487,13 +512,16 @@ export default function PricingPage() {
                     variant="flat"
                     onSelectionChange={(keys) => {
                       setSelectedCutting(
-                        new Set(Array.from(keys as Set<string>)),
+                        new Set(Array.from(keys as Set<string>))
                       );
                       const selectedId = Array.from(keys)[0];
+                      setIsDisableSize(false);
+                      filterSzzeBaseOnCutting(keys);
+                      setIsInvalidCutting(false);
 
                       setSelectedValueCutting(
                         cuttingStyle.find((cut) => cut.id == selectedId)
-                          ?.CUTTING || "Select Cutting",
+                          ?.CUTTING || "Select Cutting"
                       );
                     }}
                   >
@@ -502,6 +530,54 @@ export default function PricingPage() {
                     ))}
                   </DropdownMenu>
                 </Dropdown>
+                {isInvaliCutting ? (
+                  <span className="error-message-small">
+                    Jangan lupa pilih cutting
+                  </span>
+                ) : (
+                  <span></span>
+                )}
+
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Button
+                      isDisabled={isDisableSize}
+                      className="capitalize"
+                      variant="bordered"
+                    >
+                      {selectedValueSize}
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    disallowEmptySelection
+                    aria-label="Single selection example"
+                    selectedKeys={selectedSize}
+                    selectionMode="single"
+                    variant="flat"
+                    onSelectionChange={(keys) => {
+                      setSelectedSize(new Set(Array.from(keys as Set<string>)));
+                      const selectedId = Array.from(keys)[0];
+                      setIsInvalidSize(false);
+                      setSelectedValueSize(
+                        shirtSize.find((size) => size.id == selectedId)?.SIZE ||
+                          "Select size"
+                      );
+                    }}
+                  >
+                    {shirtSize.map((size) => (
+                      <DropdownItem key={size.id}>{size.SIZE}</DropdownItem>
+                    ))}
+                  </DropdownMenu>
+                </Dropdown>
+                {isInvalidSize ? (
+                  <span className="error-message-small">
+                    Jangan lupa pilih size
+                  </span>
+                ) : (
+                  <span></span>
+                )}
+
+                {/* cutting style DD */}
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="flat" onPress={onClose}>
