@@ -30,6 +30,10 @@ import { useEffect, useState } from "react";
 
 import { collection, endpoint } from "@/config/API";
 import { Cutting, FamilyGroup, Size, UserBatikDetails } from "@/config/model";
+import { Accordion, AccordionItem } from "@nextui-org/accordion";
+import { Image } from "@nextui-org/image";
+import rfChart from "@/public/images/Regular Fit.jpeg";
+import { regularFit, slimFit } from "@/config/size_chart";
 
 export default function PricingPage() {
   // const client = createDirectus(endpoint.url).with(rest());
@@ -60,6 +64,7 @@ export default function PricingPage() {
     new Set()
   );
   const [tableKey, setTableKey] = useState(0);
+  const [disableSizeKey, setDisableSizeKey] = useState<string[]>([]);
 
   const [selectedValueCutting, setSelectedValueCutting] =
     useState<string>("Select Cutting");
@@ -147,16 +152,29 @@ export default function PricingPage() {
     try {
       const result = await client.request(
         readItems(collection.size, {
-          filter: {
-            status: { _eq: "published" },
-          },
-          fields: ["SIZE", "id"],
+          // filter: {
+          //   status: { _eq: "published" },
+          // },
+          fields: ["SIZE", "id", "status"],
         })
       );
 
       setShirtSize(result as any as Size[]);
       setFetchShirtSize(result as any as Size[]);
+      const sizes: Size[] = result.map((item: any) => ({
+        id: item.id, // Map "identifier" to "id"
+        SIZE: item.SIZE, // Map "familyName" to "FAMILY_NAME"
+        status: item.status,
+        // Map other properties if needed
+      }));
+      let keyToDisable = sizes
+        .filter((size) => size.status != "published")
+        .map((size) => `${size.id}`);
+
       setLoading(true);
+      console.log(result, "SIZE");
+      console.log(keyToDisable, "SIZE");
+      setDisableSizeKey(keyToDisable);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -174,11 +192,11 @@ export default function PricingPage() {
     // );
     setSelectedValueSize("Select size");
 
-    const slimFitSize = [3, 4, 5];
+    const regularFitSize = [5, 6, 7];
 
-    if (sizeId?.currentKey == "2") {
+    if (sizeId?.currentKey == "1") {
       let filteredSize = fetchShirtSize.filter((size) =>
-        slimFitSize.includes(Number(size.id))
+        regularFitSize.includes(Number(size.id))
       );
 
       setShirtSize(filteredSize);
@@ -273,10 +291,12 @@ export default function PricingPage() {
         const result = await response.json();
 
         closeModal();
-        console.log("Success: Post added", result);
-        true;
+        console.log("Success: Post added");
         fetchUserBatik(familyId);
-        refreshTable();
+        setSelectedValueSize("Select size");
+        setSelectedSize(new Set());
+
+        // refreshTable();
       } else {
         // Handle API errors
         const errorData = await response.json();
@@ -331,6 +351,21 @@ export default function PricingPage() {
   };
 
   const handleUpdateBtn = () => {
+    setIsInvalidInput(false);
+    setIsInvalidCutting(false); 
+    setIsInvalidSize(false);
+    if (!nameValue) {
+      setIsInvalidInput(true);
+      return;
+    }
+    if (selectedCutting.size == 0) {
+      setIsInvalidCutting(true);
+      return;
+    }
+    if (selectedSize.size == 0) {
+      setIsInvalidSize(true);
+      return;
+    }
     let filterSize = shirtSize.filter((size) => size.SIZE == selectedValueSize);
     let filterCutting = cuttingStyle.filter(
       (cut) => cut.CUTTING == selectedValueCutting
@@ -349,18 +384,18 @@ export default function PricingPage() {
 
   const handleAddBtn = () => {
     setIsInvalidInput(false);
-    setIsInvalidCutting(false);
+    setIsInvalidCutting(false); 
     setIsInvalidSize(false);
     if (!nameValue) {
       setIsInvalidInput(true);
-      console.log(selectedCutting.size, "CUTT")
+      console.log(selectedCutting.size, "CUTT");
       return;
     }
     if (selectedCutting.size == 0) {
       setIsInvalidCutting(true);
       return;
     }
-    if(selectedSize.size == 0){
+    if (selectedSize.size == 0) {
       setIsInvalidSize(true);
       return;
     }
@@ -421,9 +456,9 @@ export default function PricingPage() {
         </div>
         <Table aria-label="Example static collection table">
           <TableHeader>
-            {/* <TableColumn>NO</TableColumn> */}
+            <TableColumn>NO</TableColumn>
             <TableColumn className="text-center">NAMA</TableColumn>
-            <TableColumn>JENIS CUTTING</TableColumn>
+            {/* <TableColumn>JENIS CUTTING</TableColumn> */}
             <TableColumn>SAIZ BAJU</TableColumn>
             <TableColumn className="text-center">ACTION</TableColumn>
           </TableHeader>
@@ -433,11 +468,11 @@ export default function PricingPage() {
             <TableBody>
               {userBatik.map((usr, idx) => (
                 <TableRow key={usr.id}>
-                  {/* <TableCell>{idx + 1}</TableCell> */}
+                  <TableCell>{idx + 1}</TableCell>
                   <TableCell className="text-center">{usr.NAME}</TableCell>
-                  <TableCell className="text-center">
+                  {/* <TableCell className="text-center">
                     {usr?.CUTTING?.CUTTING}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell className="text-center">
                     {usr.SHIRT_SIZE?.SIZE}
                   </TableCell>
@@ -540,15 +575,12 @@ export default function PricingPage() {
 
                 <Dropdown>
                   <DropdownTrigger>
-                    <Button
-                      isDisabled={isDisableSize}
-                      className="capitalize"
-                      variant="bordered"
-                    >
+                    <Button className="capitalize" variant="bordered">
                       {selectedValueSize}
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
+                    disabledKeys={disableSizeKey}
                     disallowEmptySelection
                     aria-label="Single selection example"
                     selectedKeys={selectedSize}
@@ -598,6 +630,73 @@ export default function PricingPage() {
         </ModalContent>
       </Modal>
       {/* ADD DATA MODAL END */}
+
+      {/* SIZE CHART START */}
+      <section className="grid gap-5">
+        <div className="grid gap-2">
+          <div className="flex gap-2">
+            <h1>Size Chart</h1>
+            <h1>(Regular Fit)</h1>
+          </div>
+          <Table removeWrapper aria-label="Example static collection table">
+            <TableHeader>
+              <TableColumn>SIZE</TableColumn>
+              <TableColumn>SHOULDER</TableColumn>
+              <TableColumn>CHEST</TableColumn>
+              <TableColumn>ARM</TableColumn>
+              <TableColumn>LENGTH</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {regularFit.map((sze, idx) => (
+                <TableRow key={idx + 1}>
+                  <TableCell>{sze.size}</TableCell>
+                  <TableCell>{sze.shoulder}</TableCell>
+                  <TableCell>{sze.chest}</TableCell>
+                  <TableCell>{sze.arm}</TableCell>
+                  <TableCell>{sze.length}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="grid gap-2">
+          <div className="flex gap-2">
+            <h1>Size Chart</h1>
+            <h1>(Slim Fit)</h1>
+          </div>
+          <Table removeWrapper aria-label="Example static collection table">
+            <TableHeader>
+              <TableColumn>SIZE</TableColumn>
+              <TableColumn>SHOULDER</TableColumn>
+              <TableColumn>CHEST</TableColumn>
+              <TableColumn>ARM</TableColumn>
+              <TableColumn>LENGTH</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {slimFit.map((sze, idx) => (
+                <TableRow key={idx + 1}>
+                  <TableCell>{sze.size}</TableCell>
+                  <TableCell>{sze.shoulder}</TableCell>
+                  <TableCell>{sze.chest}</TableCell>
+                  <TableCell>{sze.arm}</TableCell>
+                  <TableCell>{sze.length}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </section> 
+      {/* <Accordion>
+        <AccordionItem key="1" aria-label="Size chart" title="Size Chart">
+          <Image
+            isBlurred
+            width={240}
+            src={rfChart}
+            alt="NextUI Album Cover"
+            className="m-5"
+          />
+        </AccordionItem>
+      </Accordion> */}
     </div>
   );
 }

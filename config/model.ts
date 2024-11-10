@@ -14,6 +14,7 @@ export interface UserBatikDetails {
 export interface Size {
   SIZE: string;
   id: string;
+  status: string;
 }
 
 export interface Cutting {
