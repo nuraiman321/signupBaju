@@ -11,6 +11,11 @@ export interface UserBatikDetails {
   CUTTING: Cutting;
 }
 
+export interface TotalUserBatikSize{
+  SHIRT_SIZE: string;
+  count:number;
+}
+
 export interface Size {
   SIZE: string;
   id: string;
