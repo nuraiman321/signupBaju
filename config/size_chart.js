@@ -20,6 +20,20 @@ export const regularFit = [
     arm: "11",
     length: "30.5",
   },
+  {
+    size: "4XL",
+    shoulder: "21.5",
+    chest: "54",
+    arm: "11",
+    length: "30.5",
+  },
+  {
+    size: "5XL",
+    shoulder: "22",
+    chest: "56",
+    arm: "11.5",
+    length: "32",
+  },
 ];
 
 export const slimFit = [
