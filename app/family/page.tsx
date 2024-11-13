@@ -192,7 +192,8 @@ export default function PricingPage() {
     // );
     setSelectedValueSize("Select size");
 
-    const regularFitSize = [5, 6, 7];
+    const regularFitSize = [5, 6, 7, 8, 9];
+    const slimFitSize = [2,3,4,5,6,7];
 
     if (sizeId?.currentKey == "1") {
       let filteredSize = fetchShirtSize.filter((size) =>
@@ -201,7 +202,10 @@ export default function PricingPage() {
 
       setShirtSize(filteredSize);
     } else {
-      setShirtSize(fetchShirtSize);
+      let filteredSizeSlim = fetchShirtSize.filter((size) =>
+        slimFitSize.includes(Number(size.id))
+      );
+      setShirtSize(filteredSizeSlim);
     }
   }
 
